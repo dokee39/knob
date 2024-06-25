@@ -126,6 +126,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
     buzzer_init();
     can_filter_init();
+    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
   /* USER CODE END 2 */
 

@@ -26,6 +26,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "led_flow_task.h"
+#include "knob_task.h"
+#include "detect_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,6 +48,8 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 osThreadId led_RGB_flow_handle;
+osThreadId knob_task_handle;
+osThreadId detect_task_handle;
 /* USER CODE END Variables */
 osThreadId testHandle;
 
@@ -128,6 +132,16 @@ void MX_FREERTOS_Init(void)
     osThreadDef(led, led_RGB_flow_task, osPriorityNormal, 0, 256);
     led_RGB_flow_handle = osThreadCreate(osThread(led), NULL);
     if (led_RGB_flow_handle == NULL)
+        Error_Handler();
+    
+    osThreadDef(knob, knob_task, osPriorityAboveNormal, 0, 512);
+    knob_task_handle = osThreadCreate(osThread(knob), NULL);
+    if (knob_task_handle == NULL)
+        Error_Handler();
+
+    osThreadDef(detect, detect_task, osPriorityAboveNormal, 0, 256);
+    detect_task_handle = osThreadCreate(osThread(detect), NULL);
+    if (knob_task_handle == NULL)
         Error_Handler();
     /* USER CODE END RTOS_THREADS */
 }

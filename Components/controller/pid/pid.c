@@ -22,6 +22,13 @@
 #define ABS(x) ((x > 0) ? x : -x)
 // 限幅
 #define ABS_LIMIT(input, max)      \
+    {                              \
+        if (input > (max)) {         \
+            input = (max);           \
+        } else if (input < -(max)) { \
+            input = -(max);          \
+        }                          \
+    }
 
 /**
  * @brief          pid struct data init

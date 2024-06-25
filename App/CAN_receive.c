@@ -25,7 +25,7 @@
 #include "main.h"
 #include "bsp_rng.h"
 
-// #include "detect_task.h"
+#include "detect_task.h"
 
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
@@ -56,6 +56,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 
     switch (rx_header.StdId) {
         case CAN_GM6020_ID: {
+            get_motor_measure(&motor_measure[MOTOR_GM6020_ID], rx_data);
+            detect_hook(GM6020_TOE);
         }
 
         default:

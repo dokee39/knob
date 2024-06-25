@@ -14,7 +14,6 @@ TARGET := $(shell basename "$$PWD")
 DEBUG := 1
 # optimization
 C_OPT := -Og
-CPP_OPT := -Og -std=c++17
 # set the gcc used
 GCC_PREFIX := arm-none-eabi-
 # add the chip info
@@ -34,7 +33,6 @@ LIBS :=
 # figure out compiler settings
 AS := $(GCC_PREFIX)gcc -x assembler-with-cpp
 CC := $(GCC_PREFIX)gcc
-CPP := $(GCC_PREFIX)g++
 CP := $(GCC_PREFIX)objcopy
 SZ := $(GCC_PREFIX)size
 GDB := $(GCC_PREFIX)gdb
@@ -48,16 +46,14 @@ OOCDFLAGS := -f interface/cmsis-dap.cfg -f target/stm32f4x.cfg
 # add all your used files here 
 # --------------------------------------------------------------
 SRC_DIRS := \
-Src \
-Inc \
-application \
-bsp \
-components \
-Middlewares/Third_Party/FreeRTOS \
-Middlewares/ST/STM32_USB_Device_Library \
+App \
+Bsp \
+Components \
+Core \
 Drivers/STM32F4xx_HAL_Driver \
 Drivers/CMSIS/Include \
-Drivers/CMSIS/Device/ST/STM32F4xx/Include 
+Drivers/CMSIS/Device/ST/STM32F4xx/Include \
+Middlewares \
 
 ASM_SRCS := \
 startup_stm32f407ighx.s
@@ -88,8 +84,8 @@ ifeq ($(DEBUG), 1)
 	CFLAGS += -g -gdwarf-3
 endif
 # libraries
-LIBS += -lc -lm -lstdc++
-LDFLAGS := $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) $(LIB_FLAGS) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -Wl,--no-warn-rwx-segments
+LIBS += -lc -lm
+LDFLAGS := $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIB_FLAGS) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -Wl,--no-warn-rwx-segments
 
 # --------------------------------------------------------------
 # build your project!
@@ -102,26 +98,12 @@ $(BUILD_DIR)/%.s.o: %.s Makefile | $(BUILD_DIR)
 	@mkdir -p $(dir $@)
 	@echo -n -e "\e[0;34m=====> \e[1;34m[AS]\e[0m compiling "; echo -n -e "\e[0;34m$<\e[0m"; echo "..."
 	@$(AS) -c $(ASFLAGS) $< -o $@
-$(BUILD_DIR)/%.S.o: %.S Makefile | $(BUILD_DIR)
-	@mkdir -p $(dir $@)
-	@echo -n -e "\e[0;34m=====> \e[1;34m[AS]\e[0m compiling "; echo -n -e "\e[0;34m$<\e[0m"; echo "..."
-	@$(AS) -c $(ASFLAGS) $< -o $@
 
 # Build step for C source
 $(BUILD_DIR)/%.c.o: %.c Makefile | $(BUILD_DIR)
 	@mkdir -p $(dir $@)
 	@echo -n -e "\e[0;32m=====> \e[1;32m[CC]\e[0m compiling "; echo -n -e "\e[0;32m$<\e[0m"; echo "..."
 	@$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.c.lst)) $< -o $@
-
-# Build step for C++ source
-$(BUILD_DIR)/%.cc.o: %.cc Makefile | $(BUILD_DIR)
-	@mkdir -p $(dir $@)
-	@echo -n -e "\e[0;32m====> \e[1;32m[CPP]\e[0m compiling "; echo -n -e "\e[0;32m$<\e[0m"; echo "..."
-	@$(CPP) -c $(CPPFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cc=.cc.lst)) $< -o $@
-$(BUILD_DIR)/%.cpp.o: %.cpp Makefile | $(BUILD_DIR)
-	@mkdir -p $(dir $@)
-	@echo -n -e "\e[0;32m====> \e[1;32m[CPP]\e[0m compiling "; echo -n -e "\e[0;32m$<\e[0m"; echo "..."
-	@$(CPP) -c $(CPPFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.cpp.lst)) $< -o $@
 
 # Build step for generate elf file 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJS) Makefile | $(BUILD_DIR)
