@@ -47,6 +47,7 @@ typedef struct {
 knob_t knob;
 
 static float rad_format(float rad);
+static inline float rad_format_2pi(float rad);
 
 void knob_task(const void *arg)
 {
@@ -85,9 +86,9 @@ void knob_task(const void *arg)
             if ((knob.pos < 0 && knob.pos > -KNOB_SMOOTH_DEAD_BAND) || (knob.pos > -KNOB_POS_LIMIT && knob.pos < -KNOB_POS_LIMIT + KNOB_SMOOTH_DEAD_BAND)) {
                 knob.ctrl_val = 0;
             } else {
-                knob.ctrl_val = KNOB_SMOOTH_RATIO * knob.speed;
+                knob.ctrl_val = KNOB_SMOOTH_RATIO * (0 + 1 * (1 - (rad_format_2pi(knob.pos)) / (4 * PI - KNOB_POS_LIMIT))) * knob.speed;
             }
-            knob.duty = TIMER_DUTY_MIN + TIMER_DUTY_LEN * ((knob.pos > 0 ? knob.pos : (2 * PI + knob.pos)) / (2 * PI - KNOB_POS_LIMIT));
+            knob.duty = TIMER_DUTY_MIN + TIMER_DUTY_LEN * ((knob.pos >= 0 ? knob.pos : (2 * PI + knob.pos)) / (2 * PI - KNOB_POS_LIMIT));
         }
 
         __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, knob.duty);
@@ -103,14 +104,22 @@ void knob_task(const void *arg)
 
 static float rad_format(float rad)
 {
-    if (rad > PI) {
-        while (rad > PI) {
-            rad -= 2 * PI;
-        }
-    } else if (rad < -PI) {
-        while (rad < -PI) {
-            rad += 2 * PI;
-        }
+    while (rad > PI) {
+        rad -= 2 * PI;
+    }
+    while (rad < -PI) {
+        rad += 2 * PI;
+    }
+    return rad;
+}
+
+static inline float rad_format_2pi(float rad)
+{
+    while (rad < 0) {
+        rad += 2 * PI;
+    }
+    while (rad > 2 * PI) {
+        rad -= 2 * PI;
     }
     return rad;
 }
